@@ -1,7 +1,7 @@
 import os
 import logging
 from dotenv import load_dotenv
-from langchain_huggingface import HuggingFaceEndpoint, HuggingFaceEndpointEmbeddings
+from langchain_huggingface import HuggingFaceEndpoint, HuggingFaceEndpointEmbeddings, ChatHuggingFace
 
 load_dotenv()
 
@@ -24,9 +24,12 @@ embeddings_model = HuggingFaceEndpointEmbeddings(
     huggingfacehub_api_token=hf_token
 )
 
-llm_model = HuggingFaceEndpoint(
-    repo_id="HuggingFaceH4/zephyr-7b-beta",
+llm_base = HuggingFaceEndpoint(
+    repo_id="Qwen/Qwen2.5-1.5B-Instruct:featherless-ai",
     huggingfacehub_api_token=hf_token,
+    task="text-generation",  
     max_new_tokens=512,
     temperature=0.1
 )
+
+llm_model = ChatHuggingFace(llm=llm_base)
