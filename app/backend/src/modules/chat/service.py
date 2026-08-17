@@ -24,8 +24,8 @@ class ChatService:
             system_prompt = (
                 "Você é o Agente Virtual do Challenge Alura. Responda à pergunta usando apenas o contexto fornecido.\n"
                 "Se não souber a resposta com base no contexto, responda estritamente: 'Desculpe, não encontrei essa informação nos documentos carregados.'\n\n"
-                "Contexto de Apoio:\n{context}\n\n"
-                "Pergunta do Usuário: {question}"
+                "Contexto:\n{context}\n\n"
+                "Pergunta: {question}"
             )
             
             prompt_template = ChatPromptTemplate.from_template(system_prompt)

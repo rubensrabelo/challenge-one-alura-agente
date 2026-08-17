@@ -5,13 +5,12 @@ from src.modules.chat.router import router as chat_router
 
 app = FastAPI(
     title="Alura Agente - Monolito Modular",
-    description="Backend estruturado com pasta 'src' e APIRouter",
-    version="2.2.0"
+    description="Backend estruturado com pasta 'src' e APIRouter"
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:8080"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

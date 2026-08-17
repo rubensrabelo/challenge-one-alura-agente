@@ -25,10 +25,8 @@ embeddings_model = HuggingFaceEndpointEmbeddings(
 )
 
 llm_model = HuggingFaceEndpoint(
-    repo_id="mistralai/Mistral-7B-Instruct-v0.3",
+    repo_id="HuggingFaceH4/zephyr-7b-beta",
     huggingfacehub_api_token=hf_token,
-    task="text-generation",
     max_new_tokens=512,
-    temperature=0.1,
-    do_sample=False
+    temperature=0.1
 )
