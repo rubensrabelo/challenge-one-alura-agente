@@ -1,0 +1,6 @@
+ID,Produto,Categoria,Preco,Estoque,Localizacao
+101,Notebook Pro 15,Eletrônicos,4500.00,12,Corredor A
+102,Cadeira Ergonômica,Móveis,1200.00,25,Corredor B
+103,Cafeteira Expresso,Eletrodomésticos,600.00,8,Corredor C
+104,Teclado Mecânico RGB,Eletrônicos,350.00,45,Corredor A
+105,Mesa Digitalizadora,Eletrônicos,850.00,0,Depósito Central
