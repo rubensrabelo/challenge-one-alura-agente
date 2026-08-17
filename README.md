@@ -10,36 +10,62 @@ A solução adota o padrão de Monolito Modular centralizado dentro do diretóri
 
 ```mermaid
 graph TD
-    %% Componentes do Frontend e Cliente
     User([Usuário / Client]) -->|1. Faz Upload de PDF/CSV| FA_Doc[FastAPI: /document/upload]
     User -->|4. Faz Pergunta em Linguagem Natural| FA_Chat[FastAPI: /chat/ask]
 
-    %% Fluxo de Documentos e Ingestão
     subgraph app/backend/src/modules/document [Módulo Document]
         FA_Doc -->|Salva arquivo| SD[stored_docs/]
         FA_Doc -->|2. Executa Text Splitting| LC_Split[LangChain Splitter]
     end
 
-    %% Geração de Embeddings Externa
     LC_Split -->|Envia blocos de texto| HF_Emb(Hugging Face API: Embeddings)
     HF_Emb -->|Retorna Vetores| FAISS_Save[(Banco de Vetores: FAISS)]
 
-    %% Fluxo de Consulta e RAG
     subgraph app/backend/src/modules/chat [Módulo Chat]
         FA_Chat -->|3. Busca contexto semântico| FAISS_Save
         FAISS_Save -->|Retorna top-k trechos mais relevantes| LC_LCEL[Pipeline RAG via LCEL]
     end
 
-    %% Geração da Resposta Final
     LC_LCEL -->|Envia Prompt Contextualizado| HF_LLM(Hugging Face API: Qwen2.5 @ Featherless)
     HF_LLM -->|Retorna resposta textual blindada| FA_Chat
     FA_Chat -->|5. Exibe resposta sintetizada| User
 
-    %% Estilização do Diagrama
     style User fill:#f9f9f9,stroke:#333,stroke-width:2px
     style HF_Emb fill:#ffe6cc,stroke:#d79b00,stroke-width:2px
     style HF_LLM fill:#ffe6cc,stroke:#d79b00,stroke-width:2px
     style FAISS_Save fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px
+```
+
+---
+
+## Mapeamento de Diretórios do Repositório
+
+Abaixo está a disposição completa dos arquivos do Monolito Modular e pastas de suporte:
+
+```text
+.
+├── app
+│   ├── backend
+│   │   ├── requirements.txt
+│   │   └── src
+│   │       ├── config.py
+│   │       ├── __init__.py
+│   │       ├── main.py
+│   │       └── modules
+│   │           ├── chat
+│   │           │   ├── __init__.py
+│   │           │   ├── router.py
+│   │           │   └── service.py
+│   │           ├── document
+│   │           │   ├── __init__.py
+│   │           │   ├── router.py
+│   │           │   └── service.py
+│   │           └── __init__.py
+│   └── frontend
+├── README.md
+└── samples
+    ├── dados_empresa.csv
+    └── diretrizes_suporte.pdf
 ```
 
 ---
