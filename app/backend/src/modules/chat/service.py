@@ -1,8 +1,8 @@
 import os
 from langchain_community.vectorstores import FAISS
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
 from src.config import VECTOR_DB_DIR, embeddings_model, llm_model
 
 class ChatService:
@@ -16,17 +16,25 @@ class ChatService:
         
         system_prompt = (
             "Você é o Agente Virtual do Challenge Alura. Responda à pergunta usando apenas o contexto fornecido.\n"
-            "Se não souber, diga: 'Desculpe, não encontrei essa informação nos documentos carregados.'\n\n"
-            "Contexto:\n{context}"
+            "Se não souber a resposta com base no contexto, responda estritamente: 'Desculpe, não encontrei essa informação nos documentos carregados.'\n\n"
+            "Contexto de Apoio:\n{context}\n\n"
+            "Pergunta do Usuário: {question}"
         )
         
-        prompt_template = ChatPromptTemplate.from_messages([
-            ("system", system_prompt),
-            ("human", "{input}"),
-        ])
+        prompt_template = ChatPromptTemplate.from_template(system_prompt)
         
-        combine_docs_chain = create_stuff_documents_chain(llm_model, prompt_template)
-        rag_chain = create_retrieval_chain(retriever, combine_docs_chain)
+        def format_docs(docs):
+            return "\n\n".join(doc.page_content for doc in docs)
         
-        result = rag_chain.invoke({"input": question})
-        return result["answer"]
+        rag_chain = (
+            {
+                "context": retriever | format_docs, 
+                "question": RunnablePassthrough()
+            }
+            | prompt_template
+            | llm_model
+            | StrOutputParser()
+        )
+        
+        answer = rag_chain.invoke(question)
+        return answer
