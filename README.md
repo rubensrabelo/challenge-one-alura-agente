@@ -1,23 +1,24 @@
 # Challenge Alura Agente - Sistema RAG Open-Source (Hugging Face & OCI)
 
-Este projeto consiste em um Agente Inteligente baseado na arquitetura RAG (*Retrieval-Augmented Generation*) utilizando tecnologia 100% open-source do ecossistema **Hugging Face**. O sistema processa documentos nos formatos PDF e CSV, indexa-os localmente em um banco de vetores e responde a perguntas em linguagem natural por meio de uma interface de chat moderna.
+Este projeto consiste em um Agente Inteligente baseado na arquitetura RAG (Retrieval-Augmented Generation) utilizando tecnologia open-source do ecossistema Hugging Face consumida via API Serverless. O sistema processa documentos nos formatos PDF e CSV, indexa-os localmente em um banco de vetores e responde a perguntas em linguagem natural por meio de uma interface de chat moderna.
 
 ## Arquitetura do Sistema: Monolito Modular
-A solução adota o padrão de **Monolito Modular** centralizado dentro do diretório `app/`, garantindo portabilidade para nuvem e desacoplamento de domínios:
+A solução adota o padrão de Monolito Modular centralizado dentro do diretório `app/`, garantindo portabilidade para nuvem e desacoplamento estrito de domínios:
 
-*   **`app/backend/`**: API REST construída com **FastAPI**. Gerencia o upload de arquivos, orquestração de prompts via **LangChain**, geração de embeddings locais com `sentence-transformers` e indexação semântica via **FAISS**.
-*   **`app/frontend/`**: Interface de página única (SPA) rica e reativa em **Vue 3 (Composition API)**.
+*   **`app/backend/src/`**: API REST construída com FastAPI organizada em módulos (`document` e `chat`) via APIRouter. Orquestra o pipeline RAG utilizando a sintaxe moderna LCEL (LangChain Expression Language).
+*   **`app/frontend/`**: Interface de página única (SPA) rica e reativa em Vue 3 (Composition API).
 
 ---
 
 ## Stack Tecnológica (Open-Source)
 
-*   **Framework API**: FastAPI (Assíncrono, Type Hints)
+*   **Framework API**: FastAPI (Assíncrono, Type Hints, Pydantic v2)
 *   **Interface**: Vue 3 (Script Setup)
-*   **Orquestração de IA**: LangChain & Hugging Face Pipeline
-*   **Modelo de Embedding**: `sentence-transformers/all-MiniLM-L6-v2` (Local, leve e veloz)
-*   **Modelo de Inferência (LLM)**: Modelos open-source via Hugging Face Inference API ou Local Pipeline (ex: Llama-3, Mistral ou Qwen)
-*   **Banco de Vetores**: FAISS (Facebook AI Similarity Search)
+*   **Orquestração de IA**: LangChain via LCEL (Runnables & Pipes)
+*   **Motor de IA (Serverless via Hugging Face Inference API)**:
+    *   **Embeddings**: `sentence-transformers/all-MiniLM-L6-v2` (Geração de vetores via API)
+    *   **LLM (Inferência RAG)**: `mistralai/Mistral-7B-Instruct-v0.3` (Processamento de linguagem natural contextualmente blindado)
+*   **Banco de Vetores**: FAISS (Facebook AI Similarity Search) armazenado localmente na instância
 *   **Infraestrutura Cloud**: Oracle Cloud Infrastructure (OCI) Compute Instance
 
 ---
@@ -26,7 +27,7 @@ A solução adota o padrão de **Monolito Modular** centralizado dentro do diret
 
 ### Pré-requisitos
 * Python 3.10 ou superior instalado.
-* Compilador C++ (necessário para compilação local do FAISS em alguns sistemas).
+* Um Token de Acesso de leitura gratuito do Hugging Face (`HUGGINGFACEHUB_API_TOKEN`).
 
 ### Passo a Passo
 1. Navegue até o diretório do backend:
@@ -46,7 +47,15 @@ A solução adota o padrão de **Monolito Modular** centralizado dentro do diret
    ```
 
 4. Configure o arquivo de variáveis de ambiente:
-   * Crie o arquivo `.env` com base no modelo do repositório.
+   * Crie o arquivo `.env` dentro de `app/backend/`:
+     ```env
+     HUGGINGFACEHUB_API_TOKEN=hf_seu_token_aqui
+     PORT=8000
+     HOST=0.0.0.0
+     ```
 
 5. Inicialização:
-   *(O comando exato de inicialização será adicionado assim que criarmos o arquivo main.py)*
+   ```bash
+   uvicorn src.main:app --reload --port 8000
+   ```
+   Acesse a documentação interativa automática do Swagger em: `http://localhost:8000/docs`
