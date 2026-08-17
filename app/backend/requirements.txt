@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+pydantic
+python-multipart
+langchain
+langchain-community
+langchain-huggingface
+faiss-cpu
+pypdf
+pandas
+python-dotenv
+sentence-transformers
+transformers
+torch --extra-index-url https://pytorch.org
