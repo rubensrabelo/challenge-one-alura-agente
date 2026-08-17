@@ -6,7 +6,7 @@ from src.modules.chat.router import router as chat_router
 app = FastAPI(
     title="Alura Agente - Monolito Modular",
     description="Backend estruturado com pasta 'src' e APIRouter",
-    version="2.1.0"
+    version="2.2.0"
 )
 
 app.add_middleware(
