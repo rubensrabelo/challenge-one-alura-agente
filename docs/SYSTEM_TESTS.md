@@ -1,69 +1,39 @@
-# Guia de Execução e Homologação de Testes
+# Guia de Execução e Homologação de Testes (Ambiente Contêinerizado)
 
-Siga as instruções abaixo para subir os servidores locais e executar a homologação do pipeline RAG utilizando os arquivos de teste controlados.
+Siga as instruções abaixo para subir o ecossistema completo utilizando o Docker Compose e executar a homologação do pipeline RAG por meio dos arquivos de teste controlados.
 
-## 1. Como Executar o Backend Localmente
+## 1. Como Executar a Aplicação com Docker
 
 ### Pré-requisitos
-* Python 3.10 ou superior.
+* Docker e Docker Compose instalados na máquina.
 * Token de Acesso de leitura válido da Hugging Face.
 
-### Inicialização do Servidor
-1. Navegue até o diretório do backend:
-   ```bash
-   cd app/backend
-   ```
-2. Crie e ative o ambiente virtual:
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # No Windows use: venv\Scripts\activate
-   ```
-3. Instale as dependências:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Crie o arquivo `.env` dentro de `app/backend/` e configure suas variáveis:
+### Inicialização do Ambiente
+1. Certifique-se de que o arquivo `.env` está criado na raiz do repositório (ao lado do `docker-compose.yml`) contendo a sua chave de acesso:
    ```env
    HUGGINGFACEHUB_API_TOKEN=hf_seu_token_real_aqui
    PORT=8000
    HOST=0.0.0.0
    ```
-5. Inicie o servidor FastAPI:
+2. Execute o comando abaixo no terminal na raiz do projeto para construir as imagens e inicializar os serviços em segundo plano:
    ```bash
-   uvicorn src.main:app --reload --port 8000
+   docker compose up --build -d
    ```
+3. Valide se todos os contêineres (`alura_agente_backend`, `alura_agente_frontend` e `alura_agente_proxy`) inicializaram com sucesso rodando:
+   ```bash
+   docker compose ps
+   ```
+4. Abra o seu navegador e acesse a aplicação unificada diretamente no endereço padrão HTTP: `http://localhost`
 
 ---
 
-## 2. Como Executar o Frontend Localmente
+## 2. Roteiro Prático de Testes Baseado na Pasta Samples
 
-### Pré-requisitos
-* Node.js LTS instalado (v18 ou superior).
-
-### Inicialização da Interface
-1. Abra uma nova aba do terminal na raiz do projeto e acesse o diretório correspondente:
-   ```bash
-   cd app/frontend
-   ```
-2. Instale os pacotes necessários:
-   ```bash
-   npm install
-   ```
-3. Inicie o servidor de desenvolvimento do Vite:
-   ```bash
-   npm run dev
-   ```
-4. Abra o navegador no endereço indicado: `http://localhost:5173/`
-
----
-
-## 3. Roteiro Prático de Testes Baseado na Pasta Samples
-
-Com as duas aplicações rodando, o indicador no cabeçalho exibirá a mensagem verde **"Backend Conectado"**. Execute as seguintes validações:
+Com os contêineres em execução, a interface carregará exibindo o indicador visual verde **"Backend Conectado"** no cabeçalho. Execute as seguintes validações de negócio:
 
 ### Cenário A: Homologação do Arquivo PDF (`samples/diretrizes_suporte.pdf`)
-1. Arraste o arquivo `diretrizes_suporte.pdf` para a área tracejada do componente de upload à esquerda.
-2. Aguarde a mensagem de confirmação de indexação bem-sucedida.
+1. Arraste o arquivo `diretrizes_suporte.pdf` para a área de upload à esquerda.
+2. Aguarde a mensagem de confirmação de indexação bem-sucedida do banco vetorial FAISS.
 3. Insira as seguintes perguntas no chat para validar as respostas com base no documento:
 
 *   **Pergunta 1:** `Como funciona o horário de atendimento do suporte técnico para o plano Individual?`
@@ -74,7 +44,7 @@ Com as duas aplicações rodando, o indicador no cabeçalho exibirá a mensagem 
     *   **Resposta Esperada:** Deve declarar explicitamente que nenhum funcionário solicitará senhas ou tokens por aplicativos de mensagem.
 
 ### Cenário B: Homologação do Arquivo CSV (`samples/dados_empresa.csv`)
-1. Realize o upload do arquivo `dados_empresa.csv` na mesma área de arraste para mesclar o banco vetorial local.
+1. Realize o upload do arquivo `dados_empresa.csv` na mesma área de arraste para mesclar os dados tabulares ao banco de vetores persistido no volume local.
 2. Envie as perguntas estruturadas na caixa de chat:
 
 *   **Pergunta 1:** `Qual é o preço do Notebook Pro 15 e quantas unidades temos em estoque?`
@@ -85,7 +55,7 @@ Com as duas aplicações rodando, o indicador no cabeçalho exibirá a mensagem 
     *   **Resposta Esperada:** É a Mesa Digitalizadora, com 0 unidades em estoque.
 
 ### Cenário C: Teste de Blindagem Semântica contra Alucinações
-Envie uma pergunta de escopo totalmente alheio aos documentos para validar as diretivas de restrição do sistema:
+Envie uma pergunta de escopo totalmente alheio aos documentos carregados para validar as diretivas de restrição do sistema:
 
 *   **Pergunta:** `Como faço para assar um bolo de chocolate tradicional?`
-    *   **Resposta Esperada:** O sistema deve exibir estritamente o texto padrão configurado: `Desculpe, não encontrei essa informação nos documentos carregados.`
+    *   **Resposta Esperada:** O sistema deve recusar a geração e exibir estritamente o texto padrão de segurança configurado: `Desculpe, não encontrei essa informação nos documentos carregados.`
