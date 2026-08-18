@@ -5,8 +5,8 @@ import ChatModule from './modules/chat/views/ChatModule.vue';
 </script>
 
 <template>
-  <BaseLayout v-slot="{ isDark }">
-    <DocumentModule :isDark="isDark" />
-    <ChatModule :isDark="isDark" />
+  <BaseLayout v-slot="{ isDark, isConnected }">
+    <DocumentModule :isDark="isDark" :isConnected="isConnected" />
+    <ChatModule :isDark="isDark" :isConnected="isConnected" />
   </BaseLayout>
 </template>

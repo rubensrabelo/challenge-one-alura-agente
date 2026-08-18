@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import FileUploader from '../components/FileUploader.vue';
-defineProps<{ isDark: boolean }>();
+
+defineProps<{ 
+  isDark: boolean;
+  isConnected: boolean;
+}>();
 </script>
 
 <template>

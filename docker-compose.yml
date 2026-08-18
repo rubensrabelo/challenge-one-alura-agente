@@ -1,0 +1,32 @@
+services:
+  backend:
+    build:
+      context: ./app/backend
+    volumes:
+      - faiss_data:/app/faiss_index
+      - uploaded_docs:/app/stored_docs
+    environment:
+      - HUGGINGFACEHUB_API_TOKEN=${HUGGINGFACEHUB_API_TOKEN}
+      - HOST=0.0.0.0
+      - PORT=8000
+    restart: always
+
+  frontend:
+    build:
+      context: ./app/frontend
+    restart: always
+
+  gateway:
+    image: nginx:stable-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    restart: always
+
+volumes:
+  faiss_data:
+  uploaded_docs:
