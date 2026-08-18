@@ -19,6 +19,10 @@ app.add_middleware(
 app.include_router(document_router)
 app.include_router(chat_router)
 
+@app.get("/api/health")
+async def health_check():
+    return {"status": "healthy"}
+
 @app.get("/")
 def health_check():
     return {"status": "healthy", "architecture": "Modular Monolith (src)"}
