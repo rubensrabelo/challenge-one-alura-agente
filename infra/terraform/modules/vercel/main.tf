@@ -10,7 +10,7 @@ terraform {
 resource "vercel_project" "web" {
   name           = var.project_name
   framework      = "vue"
-  root_directory = "apps/frontend"
+  root_directory = "app/frontend"
 
   git_repository = {
     type = "github"
