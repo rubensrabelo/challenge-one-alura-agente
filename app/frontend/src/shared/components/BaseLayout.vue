@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { Sun, Moon, Cpu, CheckCircle } from 'lucide-vue-next';
+import { ref, onMounted, onUnmounted } from 'vue';
+import { Sun, Moon, Cpu, CheckCircle, XCircle } from 'lucide-vue-next';
+import apiClient from '../api/client';
 
 const isDark = ref(true);
+const isConnected = ref(false);
+let checkInterval: ReturnType<typeof setInterval> | null = null;
 
 const toggleTheme = () => {
   isDark.value = !isDark.value;
@@ -13,8 +16,27 @@ const toggleTheme = () => {
   }
 };
 
+const checkBackendHealth = async () => {
+  try {
+    const response = await apiClient.get('/');
+    if (response.data && response.data.status === 'healthy') {
+      isConnected.value = true;
+    } else {
+      isConnected.value = false;
+    }
+  } catch (error) {
+    isConnected.value = false;
+  }
+};
+
 onMounted(() => {
   document.documentElement.classList.add('dark');
+  checkBackendHealth();
+  checkInterval = setInterval(checkBackendHealth, 5000);
+});
+
+onUnmounted(() => {
+  if (checkInterval) clearInterval(checkInterval);
 });
 </script>
 
@@ -52,17 +74,20 @@ onMounted(() => {
 
           <div :class="[
             'flex items-center space-x-2 text-xs px-3 py-1.5 rounded-full border transition-colors duration-300',
-            isDark ? 'text-slate-400 bg-slate-900 border-slate-800' : 'text-slate-600 bg-slate-100 border-slate-200'
+            isConnected 
+              ? (isDark ? 'text-emerald-400 bg-emerald-950/20 border-emerald-900/30' : 'text-emerald-700 bg-emerald-50 border-emerald-200')
+              : (isDark ? 'text-rose-400 bg-rose-950/20 border-rose-900/30' : 'text-rose-700 bg-rose-50 border-rose-200')
           ]">
-            <CheckCircle class="w-3.5 h-3.5 text-emerald-500" />
-            <span class="font-medium">Backend Conectado</span>
+            <CheckCircle v-if="isConnected" class="w-3.5 h-3.5 text-emerald-500" />
+            <XCircle v-else class="w-3.5 h-3.5 text-rose-500 animate-pulse" />
+            <span class="font-medium">{{ isConnected ? 'Backend Conectado' : 'Backend Desconectado' }}</span>
           </div>
         </div>
       </div>
     </header>
 
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <slot :isDark="isDark" />
+      <slot :isDark="isDark" :isConnected="isConnected" />
     </main>
   </div>
 </template>

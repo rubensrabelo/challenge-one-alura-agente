@@ -3,7 +3,10 @@ import { ref, nextTick } from 'vue';
 import { MessageSquare, Send, Loader2 } from 'lucide-vue-next';
 import apiClient from '../../../shared/api/client';
 
-defineProps<{ isDark: boolean }>();
+defineProps<{ 
+  isDark: boolean;
+  isConnected: boolean;
+}>();
 
 interface Message {
   id: string;
@@ -119,19 +122,19 @@ const sendMessage = async () => {
         <input 
           type="text" 
           v-model="inputMessage" 
-          placeholder="Digite sua dúvida com base nos documentos..." 
+          :placeholder="isConnected ? 'Digite sua dúvida com base nos documentos...' : 'Aguardando conexão com o servidor...'" 
           :class="[
             'flex-1 border rounded-xl px-4 py-3 text-xs focus:outline-none focus:ring-1 transition-all duration-200',
             isDark 
               ? 'bg-slate-950 border-slate-800 text-slate-100 placeholder-slate-600 focus:border-blue-500 focus:ring-blue-500' 
               : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-blue-500'
           ]"
-          :disabled="isThinking"
+          :disabled="isThinking || !isConnected"
         />
         <button 
           type="submit" 
           class="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:hover:bg-blue-600 text-white font-medium text-xs px-5 py-3 rounded-xl transition-all duration-200 shadow-sm flex items-center space-x-1.5"
-          :disabled="!inputMessage.trim() || isThinking"
+          :disabled="!inputMessage.trim() || isThinking || !isConnected"
         >
           <span>Enviar</span>
           <Send class="w-3 h-3" />
