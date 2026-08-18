@@ -1,8 +1,10 @@
-# Guia de Execução e Homologação de Testes (Ambiente Contêinerizado)
+# Guia de Execução e Homologação de Testes (Local e Nuvem)
 
-Siga as instruções abaixo para subir o ecossistema completo utilizando o Docker Compose e executar a homologação do pipeline RAG por meio dos arquivos de teste controlados.
+Siga as instruções abaixo para gerenciar e validar o ciclo de vida completo do ecossistema, utilizando o Docker Compose para o ambiente local controlado ou os scripts de automação IaC para o provisionamento em nuvem na Vercel e no Render.
 
-## 1. Como Executar a Aplicação com Docker
+---
+
+## 1. Execução no Ambiente Local (Docker)
 
 ### Pré-requisitos
 * Docker e Docker Compose instalados na máquina.
@@ -12,10 +14,11 @@ Siga as instruções abaixo para subir o ecossistema completo utilizando o Docke
 1. Certifique-se de que o arquivo `.env` está criado na raiz do repositório (ao lado do `docker-compose.yml`) contendo a sua chave de acesso:
    ```env
    HUGGINGFACEHUB_API_TOKEN=hf_seu_token_real_aqui
+   VITE_API_BASE_URL=http://localhost
    PORT=8000
    HOST=0.0.0.0
    ```
-2. Execute o comando abaixo no terminal na raiz do projeto para construir as imagens e inicializar os serviços em segundo plano:
+2. Execute o comando abaixo no terminal na raiz do projeto para construir as imagens locais e inicializar os serviços em segundo plano:
    ```bash
    docker compose up --build -d
    ```
@@ -27,9 +30,35 @@ Siga as instruções abaixo para subir o ecossistema completo utilizando o Docke
 
 ---
 
-## 2. Roteiro Prático de Testes Baseado na Pasta Samples
+## 2. Execução no Ambiente Nuvem (Scripts Automáticos)
 
-Com os contêineres em execução, a interface carregará exibindo o indicador visual verde **"Backend Conectado"** no cabeçalho. Execute as seguintes validações de negócio:
+### Pré-requisitos
+* Terraform instalado na máquina de desenvolvimento.
+* Arquivo `terraform.tfvars` configurado na raiz contendo os tokens e credenciais reais do Render, Vercel e Hugging Face.
+
+### Deploy Automatizado
+1. Garanta a permissão de execução nos scripts utilitários localizados na raiz do projeto:
+   ```bash
+   chmod +x deploy.sh destroy.sh
+   ```
+2. Dispare o script de inicialização para planejar e aplicar automaticamente toda a infraestrutura multicloud:
+   ```bash
+   ./deploy.sh
+   ```
+3. O Terraform provisionará a API do Python no Render injetando o token de inferência de IA e hospedará o frontend estático Vue 3 na infraestrutura da Vercel. Ao término da execução, as URLs públicas geradas serão exibidas no terminal.
+4. Acesse o link público fornecido pela Vercel em seu navegador.
+
+### Destruição do Ambiente
+Para remover completamente todos os recursos alocados na nuvem e evitar cobranças indesejadas, execute o script de encerramento automático:
+```bash
+./destroy.sh
+```
+
+---
+
+## 3. Roteiro Prático de Testes Baseado na Pasta Samples
+
+Seja no ambiente local (`http://localhost`) ou na nuvem (`https://vercel.app`), certifique-se de que o indicador visual no cabeçalho exiba a mensagem verde **"Backend Conectado"** antes de iniciar as validações abaixo.
 
 ### Cenário A: Homologação do Arquivo PDF (`samples/diretrizes_suporte.pdf`)
 1. Arraste o arquivo `diretrizes_suporte.pdf` para a área de upload à esquerda.
@@ -44,7 +73,7 @@ Com os contêineres em execução, a interface carregará exibindo o indicador v
     *   **Resposta Esperada:** Deve declarar explicitamente que nenhum funcionário solicitará senhas ou tokens por aplicativos de mensagem.
 
 ### Cenário B: Homologação do Arquivo CSV (`samples/dados_empresa.csv`)
-1. Realize o upload do arquivo `dados_empresa.csv` na mesma área de arraste para mesclar os dados tabulares ao banco de vetores persistido no volume local.
+1. Realize o upload do arquivo `dados_empresa.csv` na mesma área de arraste para mesclar os dados tabulares ao banco de vetores ativo.
 2. Envie as perguntas estruturadas na caixa de chat:
 
 *   **Pergunta 1:** `Qual é o preço do Notebook Pro 15 e quantas unidades temos em estoque?`
@@ -55,7 +84,7 @@ Com os contêineres em execução, a interface carregará exibindo o indicador v
     *   **Resposta Esperada:** É a Mesa Digitalizadora, com 0 unidades em estoque.
 
 ### Cenário C: Teste de Blindagem Semântica contra Alucinações
-Envie uma pergunta de escopo totalmente alheio aos documentos carregados para validar as diretivas de restrição do sistema:
+Envie uma pergunta de escopo totalmente alheio aos documentos carregados para validar as diretivas de restrição e segurança do sistema RAG:
 
 *   **Pergunta:** `Como faço para assar um bolo de chocolate tradicional?`
-    *   **Resposta Esperada:** O sistema deve recusar a geração e exibir estritamente o texto padrão de segurança configurado: `Desculpe, não encontrei essa informação nos documentos carregados.`
+    *   **Resposta Esperada:** O sistema deve recusar a geração de conteúdo fora de contexto e retornar estritamente o texto padrão configurado: `Desculpe, não encontrei essa informação nos documentos carregados.`
