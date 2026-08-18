@@ -18,7 +18,7 @@ const toggleTheme = () => {
 
 const checkBackendHealth = async () => {
   try {
-    const response = await apiClient.get('/');
+    const response = await apiClient.get('/api/health');
     if (response.data && response.data.status === 'healthy') {
       isConnected.value = true;
     } else {
@@ -28,6 +28,7 @@ const checkBackendHealth = async () => {
     isConnected.value = false;
   }
 };
+
 
 onMounted(() => {
   document.documentElement.classList.add('dark');
