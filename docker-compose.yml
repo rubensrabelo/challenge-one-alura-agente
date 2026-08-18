@@ -16,11 +16,11 @@ services:
     restart: always
 
   frontend_web:
-    env_file:
-      - .env
     build:
       context: ./app/frontend
       dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
     container_name: alura_agente_frontend
     volumes:
       - frontend_dist:/usr/share/nginx/html
