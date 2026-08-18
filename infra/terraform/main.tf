@@ -1,7 +1,8 @@
 module "render_backend" {
-  source       = "./modules/render"
-  service_name = "my-python-backend-api"
-  github_repo  = var.github_repository
+  source                = "./modules/render"
+  service_name          = "my-python-backend-api"
+  github_repo           = var.github_repository
+  huggingface_api_token = var.huggingface_api_token
 }
 
 module "vercel_frontend" {

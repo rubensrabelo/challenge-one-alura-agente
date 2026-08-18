@@ -5,3 +5,7 @@ variable "service_name" {
 variable "github_repo" {
   type = string
 }
+
+variable "huggingface_api_token" {
+  type = string
+}

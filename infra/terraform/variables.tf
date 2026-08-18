@@ -8,9 +8,16 @@ variable "vercel_api_token" {
   sensitive = true
 }
 
-variable "github_repository" { type = string }
+variable "github_repository" {
+  type = string
+}
 
 variable "render_owner_id" {
+  type      = string
+  sensitive = true
+}
+
+variable "huggingface_api_token" {
   type      = string
   sensitive = true
 }

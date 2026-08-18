@@ -21,4 +21,16 @@ resource "render_web_service" "api" {
       dockerfile_path = "Dockerfile"
     }
   }
+
+  env_vars = {
+    HUGGINGFACEHUB_API_TOKEN = {
+      value = var.huggingface_api_token
+    }
+    PORT = {
+      value = "8000"
+    }
+    HOST = {
+      value = "0.0.0.0"
+    }
+  }
 }
