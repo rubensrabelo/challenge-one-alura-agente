@@ -20,8 +20,11 @@ resource "vercel_project" "web" {
 
 resource "vercel_project_environment_variable" "api" {
   project_id = vercel_project.web.id
-  key        = "VITE_API_URL"
-  value      = "${var.backend_url}/api/v1"
-  target     = ["production", "preview"]
-  sensitive  = false
+
+  key = "VITE_API_BASE_URL"
+
+  value = var.backend_url
+
+  target    = ["production", "preview", "development"]
+  sensitive = false
 }
