@@ -16,7 +16,7 @@ flowchart TB
 
     subgraph PROXY["Gateway · Nginx Proxy Container"]
         NGX["Nginx Server"]
-        CONF["nginx.conf"]
+        CONF["default.conf"]
         NGX --- CONF
     end
 
@@ -93,52 +93,47 @@ flowchart TB
     class NGX,CONF proxy
 ```
 
-### Ambiente Nuvem (Oracle Cloud Infrastructure - OCI)
+### Ambiente Nuvem (Vercel & Render via Terraform)
 
-A topologia em nuvem representa o cenário final planejado para a distribuição da aplicação em ambiente de produção resiliente.
+A topologia em nuvem representa o ecossistema gerenciado de produção atual. Os recursos são instanciados via Terraform e integrados de forma totalmente serverless:
 
 ```mermaid
 flowchart TD
-    Internet((Internet)) -->|Porta 80 / 444| SLB["OCI Flexible Load Balancer"]
+    U([Usuário])
     
-    subgraph VCN["OCI Virtual Cloud Network (VCN)"]
-        subgraph PubSub["Subnet Pública"]
-            SLB
-        end
-        
-        subgraph PrivSub["Subnet Privada"]
-            subgraph Compute["OCI Compute Instance (Ubuntu Server)"]
-                subgraph Docker["Docker Engine Enterprise"]
-                    R_PROXY["Nginx Proxy"]
-                    F_WEB["Frontend Web Component"]
-                    B_API["Backend FastAPI Server"]
-                    
-                    R_PROXY --> F_WEB
-                    R_PROXY --> B_API
-                end
-                
-                subgraph Block["OCI Block Volume"]
-                    V_FAISS[("Persistent FAISS Indexes")]
-                    V_STORE[("Persistent Raw Documents")]
-                end
-                
-                B_API <--> Block
-            end
-        end
+    subgraph VC["Infraestrutura Edge · Vercel"]
+        VF["Frontend Web App"]
+        V_ENV["VITE_API_BASE_URL"]
+        VF --- V_ENV
     end
-    
+
+    subgraph RD["Infraestrutura Gerenciada · Render"]
+        RB["Backend API (FastAPI)"]
+        R_ENV["HUGGINGFACEHUB_API_TOKEN"]
+        R_VOL[("Efêmero<br/>FAISS Indexes")]
+        
+        RB --- R_ENV
+        RB --- R_VOL
+    end
+
     subgraph HF["Hugging Face Cloud Serverless"]
         API_E["Inference API: Embeddings"]
         API_L["Inference API: Qwen2.5 LLM"]
     end
-    
-    SLB -->|Encaminha Requisição| R_PROXY
-    B_API <-->|HTTPS Hub Tokens| HF
-    
-    classDef oci fill:#fbe9e7,stroke:#ff5722,stroke-width:2px,color:#111
-    classDef cloud fill:#fafafa,stroke:#9e9e9e,stroke-width:2px,color:#111
-    class SLB,VCN,Compute,Block oci
-    class HF,API_E,API_L cloud
+
+    U -->|Acessa Interface HTTPS| VF
+    VF -->|Requisições CORS Seguras| RB
+    RB <-->|HTTPS Hub Tokens| HF
+
+    classDef cloud_f fill:#e8f4fd,stroke:#2196f3,stroke-width:2px,color:#111
+    classDef cloud_b fill:#eaf7ea,stroke:#43a047,stroke-width:2px,color:#111
+    classDef cloud_ai fill:#fafafa,stroke:#9e9e9e,stroke-width:2px,color:#111
+    classDef user fill:#f5f5f5,stroke:#555,stroke-width:2px,color:#111
+
+    class U user
+    class VF,V_ENV cloud_f
+    class RB,R_ENV,R_VOL cloud_b
+    class HF,API_E,API_L cloud_ai
 ```
 
 ---
@@ -146,10 +141,12 @@ flowchart TD
 ## Fluxo Principal de Negócio
 
 ### Upload de documentos
-`Usuário → Nginx Proxy → FastAPI → Text Splitter → Embeddings → FAISS`
+* **Local:** `Usuário → Nginx Proxy → FastAPI → Text Splitter → Embeddings → FAISS`
+* **Nuvem:** `Usuário → Vercel (Vue 3) → Render (FastAPI) → Text Splitter → Embeddings → FAISS (Memória/Disco Efêmero)`
 
 ### Pergunta ao sistema
-`Usuário → Nginx Proxy → FastAPI → RAG → FAISS → Qwen2.5 → Resposta`
+* **Local:** `Usuário → Nginx Proxy → FastAPI → RAG → FAISS → Qwen2.5 → Resposta`
+* **Nuvem:** `Usuário → Vercel (Vue 3) → Render (FastAPI) → RAG → FAISS → Qwen2.5 → Resposta`
 
 ---
 
@@ -164,4 +161,5 @@ flowchart TD
   * **Embeddings**: `sentence-transformers/all-MiniLM-L6-v2`
   * **LLM (Inferência RAG)**: `Qwen/Qwen2.5-1.5B-Instruct:featherless-ai`
 * **Banco de Vetores**: FAISS (Facebook AI Similarity Search)
-* **Infraestrutura Cloud**: Oracle Cloud Infrastructure (OCI) Compute Instance
+* **Infraestrutura Cloud**: Servidores Serverless Dedicados (Vercel Edge Network + Render Web Services)
+* **Ferramenta de Provisionamento (IaC)**: Terraform (Módulos `render` e `vercel`)
